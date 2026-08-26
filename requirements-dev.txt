@@ -1,0 +1,10 @@
+# Development-only dependencies.
+# rembg + Pillow are used ONCE to turn the photos in ./pic into transparent
+# PNGs (saved in ./assets/pets). End users never need these.
+-r requirements.txt
+rembg[cpu]>=2.0.50
+Pillow>=10.0
+imageio>=2.30
+imageio-ffmpeg>=0.4
+pyinstaller>=6.0
+pytest>=8.0
