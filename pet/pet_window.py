@@ -63,6 +63,7 @@ class PetWindow(QWidget):
         self._overlay: CelebrationOverlay | None = None
         self._weather_thread = None
         self._sync_thread = None
+        self._sync_pending = False
 
         # Drag state.
         self._press_global = QPoint()
@@ -280,6 +281,10 @@ class PetWindow(QWidget):
         learn.triggered.connect(self._learn_english)
         menu.addAction(learn)
 
+        learn_chinese = QAction("学中文和文化 / Learn Chinese & Culture", menu)
+        learn_chinese.triggered.connect(self._learn_chinese)
+        menu.addAction(learn_chinese)
+
         wx = QAction("今天天气 / Weather", menu)
         wx.triggered.connect(self._start_weather)
         menu.addAction(wx)
@@ -359,6 +364,22 @@ class PetWindow(QWidget):
             text, self._head_global(), duration_ms=8000, speak_text=entry["en"]
         )
 
+    def _learn_chinese(self) -> None:
+        entry = phrasebook.random_chinese_entry()
+        text = (
+            f"{entry['zh']}\n"
+            f"{entry['pinyin']}\n"
+            f"{entry['en']}\n"
+            f"{entry['culture']}"
+        )
+        self._bubble.show_message(
+            text,
+            self._head_global(),
+            duration_ms=9000,
+            speak_text=entry["zh"],
+            speak_language="zh-CN",
+        )
+
     def _set_scale(self, value: float) -> None:
         self._scale = value
         self._rebuild_scaled()
@@ -408,28 +429,35 @@ class PetWindow(QWidget):
 
     def start_library_sync(self) -> None:
         if self._sync_thread is not None and self._sync_thread.isRunning():
+            self._sync_pending = True
             return
         todo, orphans = library.plan_sync()
         if not todo and not orphans:
             return
+        self._sync_pending = False
         self._sync_thread = processing.sync_library_async(
             self, self._on_library_synced
         )
 
     def _sync_library_now(self) -> None:
         if self._sync_thread is not None and self._sync_thread.isRunning():
+            self._sync_pending = True
             self._say("正在同步中，请稍等～ Sync already running.", duration_ms=2600)
             return
         self.start_library_sync()
         self._say("开始同步素材～ Sync started.", duration_ms=2400)
 
     def _on_library_synced(self, processed: int, unprocessed: int) -> None:
+        sync_pending = self._sync_pending
         self._sync_thread = None
+        self._sync_pending = False
         had_none = not self._pets
         self._pets = library.cached_pets()
         if not self._pets:
             self._clear_pet()
             self.hide()
+            if sync_pending:
+                QTimer.singleShot(0, self.start_library_sync)
             return
 
         if not self.isVisible():
@@ -457,6 +485,9 @@ class PetWindow(QWidget):
                 "Found new photos, but the cut-out engine isn't available.",
                 duration_ms=6000,
             )
+
+        if sync_pending:
+            QTimer.singleShot(0, self.start_library_sync)
 
     def _toggle_always_on_top(self, checked: bool) -> None:
         self._apply_always_on_top(checked)
