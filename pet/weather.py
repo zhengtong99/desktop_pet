@@ -1,4 +1,4 @@
-"""Fetch the local weather (by IP) and narrate it in a fun, cute tone.
+"""Fetch local weather by IP and format a playful bilingual report.
 
 Uses only free, key-less web services:
   * ip-api.com          -> approximate location from the user's IP address
@@ -20,7 +20,7 @@ _FAHRENHEIT = {"US", "BS", "BZ", "KY", "PW", "FM", "MH"}
 
 _TIMEOUT = 8  # seconds per request
 
-# WMO weather codes -> (Chinese, English, emoji)
+# WMO weather code -> (Chinese description, English description, emoji).
 _WEATHER_CODES: dict[int, tuple[str, str, str]] = {
     0: ("大晴天", "clear sky", "☀️"),
     1: ("晴", "mostly clear", "🌤️"),
@@ -59,7 +59,8 @@ def _describe_code(code: int) -> tuple[str, str, str]:
 
 def _get_location() -> dict:
     resp = requests.get(
-        "http://ip-api.com/json/?fields=status,country,countryCode,city,lat,lon",
+        "http://ip-api.com/json/"
+        "?fields=status,country,countryCode,city,lat,lon",
         timeout=_TIMEOUT,
     )
     resp.raise_for_status()
@@ -98,12 +99,12 @@ def _fun_comment(code: int, high: float, unit: str) -> str:
                 "光线柔和，拍照正好 Soft light, perfect for photos!"]
     elif code in (95, 96, 99):
         base = ["打雷啦，待在室内更安全 Stay cozy indoors! ⛈️"]
-    elif 51 <= code <= 82:
-        base = ["记得带伞哦☔ Grab an umbrella!",
-                "雨天记得穿防滑鞋 Watch your step in the rain!"]
     elif 71 <= code <= 86:
         base = ["下雪啦，注意保暖！ Bundle up, it's snowy! ❄️",
                 "小心路滑哦 Careful, it's slippery!"]
+    elif 51 <= code <= 82:
+        base = ["记得带伞哦☔ Grab an umbrella!",
+                "雨天记得穿防滑鞋 Watch your step in the rain!"]
     else:
         base = ["照顾好自己哦 Take care out there!"]
 
@@ -115,7 +116,11 @@ def _fun_comment(code: int, high: float, unit: str) -> str:
 
 
 def build_report() -> str:
-    """Fetch everything and return a ready-to-show bilingual weather line."""
+    """Fetch data and return a ready-to-show bilingual weather report.
+
+    The report contains Chinese and English condition descriptions, bilingual
+    temperature labels, and a bilingual weather tip.
+    """
     loc = _get_location()
     fahrenheit = loc.get("countryCode") in _FAHRENHEIT
     unit = "°F" if fahrenheit else "°C"
@@ -136,13 +141,14 @@ def build_report() -> str:
 
     return (
         f"{emoji} {city}今天是{zh}哦！ It's {en} in {city}!\n"
-        f"现在 {temp:.0f}{unit}，最高 {high:.0f}{unit} / 最低 {low:.0f}{unit}。\n"
+        f"现在Now {temp:.0f}{unit}，最高High {high:.0f}{unit} / "
+        f"最低Low {low:.0f}{unit}。\n"
         f"{comment}"
     )
 
 
 class WeatherWorker(QObject):
-    """Runs :func:`build_report` on a background thread and emits the result."""
+    """Build a weather report in a background thread and emit its result."""
 
     ready = Signal(str)
     failed = Signal(str)
