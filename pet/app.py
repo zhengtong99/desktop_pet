@@ -30,7 +30,7 @@ def main(*, fast_start: bool = False) -> int:
             None,
             "Desktop Pet",
             "No photos found yet.\n\n"
-            f"Add pictures (.jpg/.jpeg/.png/.webp/.bmp/.tiff/.heic) to this folder, then reopen:\n"
+            f"Add pictures or live clips (.jpg/.jpeg/.png/.webp/.bmp/.tiff/.heic/.mp4/.mov/.m4v) to this folder, then reopen:\n"
             f"{library.pic_dir()}",
         )
         return 0

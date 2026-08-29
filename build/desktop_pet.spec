@@ -109,7 +109,7 @@ if sys.platform == "darwin":
         info_plist={
             "CFBundleName": "Desktop Pet",
             "CFBundleDisplayName": "Desktop Pet",
-            "CFBundleShortVersionString": "1.0.0",
+            "CFBundleShortVersionString": "1.0.2",
             "NSHighResolutionCapable": True,
             # Run as a background agent: no Dock icon, no menu bar clutter.
             "LSUIElement": True,

@@ -60,3 +60,66 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ matrix.artifact }}.zip
+name: Build apps
+
+# Builds double-clickable apps for macOS and Windows.
+# Runs on version tags (e.g. v1.0.0) and can be triggered manually.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            artifact: DesktopPet-macOS
+          - os: windows-latest
+            artifact: DesktopPet-Windows
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Generate icons
+        run: python tools/make_icon.py
+
+      - name: Build app
+        run: pyinstaller build/desktop_pet.spec --noconfirm
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          # Remove the quarantine-unfriendly extended attributes before zipping.
+          ditto -c -k --keepParent "Desktop Pet.app" "../${{ matrix.artifact }}.zip"
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd dist
+          Compress-Archive -Path "Desktop Pet" -DestinationPath "../${{ matrix.artifact }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.artifact }}.zip
