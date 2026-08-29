@@ -2,13 +2,14 @@
 
 A cute, always-on-top desktop companion — inspired by VS Code Pets, but it's a
 real person (or people!) cut out from your favorite photos. It hops when you
-poke it, chats in Chinese & English, teaches you a daily English word you can
-hear out loud, celebrates holidays with fireworks and falling emoji, and tells
-you the local weather in a fun voice.
+poke it, chats in Chinese & English, teaches you English and friendly Chinese
+language/culture cards you can hear out loud, celebrates holidays with
+fireworks and falling emoji, and shows the local weather in a playful bilingual
+bubble.
 
 一个可爱的桌面小伙伴：把你喜欢的照片抠出人物，透明无边框、始终置顶。点它会跳、会
-说中英文悄悄话、每天教你一句地道英语还能点击发音、逢年过节放烟花/飘雪花，还会用有趣
-的语气播报当地天气。
+说中英文悄悄话、教你英语和简短的中文/中国文化还能点击发音、逢年过节放烟花/飘雪花，
+还会用有趣的语气播报当地天气。
 
 **100% Python • macOS & Windows • free for personal, non-commercial use.**
 **无需任何编程知识，下载即用 · 仅供个人非商业使用。**
@@ -104,7 +105,8 @@ Double-click the downloaded `.zip` to unzip it. 双击下载好的压缩包解�
 - **换一个 / Switch character** — show a different photo 换一张照片
 - **陪我聊聊 / Say hi** — a random cute line 随机可爱对白
 - **学个英语 / Learn English** — a daily English word/phrase 学一个英语词句
-- **今天天气 / Weather** — say the current weather 播报天气
+- **学中文和文化 / Learn Chinese & Culture** — short Chinese phrases, pinyin, English meaning, culture notes, and pronunciation 学简短中文、拼音、英文解释、文化小知识和发音
+- **今天天气 / Weather** — show the current weather 显示天气播报
 - **庆祝一下 / Celebrate** — fireworks / confetti 放个烟花彩带
 - **立即同步素材 / Sync library now** — force an instant re-scan of `pic` (changes are also detected automatically within a second or two) 立刻强制按 `pic` 同步（平时改动也会在一两秒内自动同步）
 - **始终置顶 / Always on top** — keep the pet above other windows 是否总在最前
@@ -124,6 +126,33 @@ meaning. Tap the **🔊 speaker** on the bubble to hear it pronounced aloud — 
 uses your computer's built-in voice, so it works offline with no setup.
 宠物会时不时（或通过右键菜单“学个英语”）弹出一个地道美式英语的单词/短语/日常表达和
 中文意思；点气泡上的 **🔊 小喇叭** 就能听发音，使用系统自带语音，离线也能用。
+
+### Learn a little Chinese and culture 学中文和中国文化 🔊
+
+Choose **学中文和文化 / Learn Chinese & Culture** from the right-click menu.
+Each short card shows **Chinese characters, pinyin, a friendly English meaning,
+and one small culture note**. Tap the **🔊 speaker** to hear the Chinese phrase
+pronounced aloud by your computer's built-in voice.
+右键选择“学中文和文化”，每张卡片会显示汉字、拼音、简短英文意思和一条文化小知识；
+点击 **🔊 小喇叭** 即可听中文发音。内容简短，适合中文初学者。
+
+The app explicitly requests a Mandarin (`zh-CN`) system voice for these cards.
+A Chinese keyboard/input method is separate from a Chinese speech voice. If
+your Mac still reads Chinese incorrectly, open **System Settings → Accessibility
+→ Read & Speak → System Voice** and download/select a Chinese voice (for
+example, the built-in **Eddy (Chinese (China mainland))** voice used by the app).
+程序会为中文卡片明确请求普通话（`zh-CN`）系统语音；中文输入法和中文语音是两回事。
+如果 Mac 仍然发音不正确，请到“系统设置 → 辅助功能 → 阅读与朗读 → 系统声音”下载并选择
+中文（中国大陆）语音。
+
+On Windows 10/11, the app asks Windows Speech for a `zh-CN` voice. A Chinese
+keyboard is separate from a Chinese speech voice. If the pronunciation is
+wrong or silent, open **Settings → Time & language → Language & region**,
+install **Chinese (Simplified, China)** and its speech/language features, then
+restart the app. Windows uses PowerShell/System.Speech and needs no Python.
+Windows 10/11 会请求 `zh-CN` 普通话语音；中文输入法和中文语音是两回事。如果没有声音或发音
+不正确，请到“设置 → 时间和语言 → 语言和区域”安装“中文（简体，中国）”及语音相关功能，
+然后重启程序。Windows 版本不需要安装 Python。
 
 ---
 
@@ -192,11 +221,12 @@ Inside you'll see the **sample photos** that came with the app. 里面是程序�
      out from the background** (full body or upper body). 人物清晰、和背景区分明显、
      全身或半身照效果最好。
    - You can add **as many as you like**. 想加多少张都可以。
-3. **Done! 完成！** The app watches the `pic` folder and syncs automatically
-   within a second or two — no restart needed. Want it instantly? Right-click
-   the pet → **立即同步素材 / Sync library now**.
-   程序会自动监测 `pic` 文件夹变化并在一两秒内自动同步，无需重启；想立刻生效也可以
-   右键宠物 → 立即同步素材。
+3. **Done! 完成！** The app watches the `pic` folder and starts syncing after
+  a short delay — no restart needed. AI processing may take several seconds.
+  Want to start it immediately? Right-click the pet →
+  **立即同步素材 / Sync library now**.
+  程序会自动监测 `pic` 文件夹变化并开始同步，无需重启；AI 抠图可能需要几秒钟，想立即
+  开始也可以右键宠物 → 立即同步素材。
    程序会自动抠图，新宠物就出现啦。
 
 ### 3.4 How the daily switch works 每天换一张的规则
@@ -217,9 +247,9 @@ Inside you'll see the **sample photos** that came with the app. 里面是程序�
 - 🌐 The **first time** a brand-new photo is processed, the app downloads a small
   AI model **once** (needs internet that one time). After that it works offline.
   首次处理新照片会联网下载一次抠图模型，之后离线也能用。
-- 🗑️ **Delete a photo** from the `pic` folder and its pet is removed
-  automatically within a second or two (or instantly via **Sync library now**).
-  从 `pic` 删掉照片后，程序会在一两秒内自动清理对应宠物（也可点“立即同步素材”立刻生效）。
+- 🗑️ **Delete a photo** from the `pic` folder and its generated pet is removed
+  automatically after the next sync (or immediately via **Sync library now**).
+  从 `pic` 删掉照片后，程序会在下一次同步时自动清理对应宠物（也可点“立即同步素材”立刻开始）。
 - ⏳ Processing a new photo takes a few seconds — the pet will let you know when a
   new friend is ready. 处理新照片需要几秒，完成后宠物会提示“新朋友准备好啦”。
 
@@ -229,8 +259,10 @@ Inside you'll see the **sample photos** that came with the app. 里面是程序�
 
 To tell you the weather, the app looks up your **approximate city** from your IP
 address (via `ip-api.com`) and fetches the forecast from `open-meteo.com`. It
-picks °C or °F automatically based on your country. 天气功能会根据 IP 获取大致城市
-并查询天气，自动选择摄氏或华氏。
+picks °C or °F automatically based on your country. Each report displays the
+weather condition, temperature labels, and a short tip in **Chinese and
+English**, for example: `现在Now 23°C，最高High 27°C / 最低Low 18°C。` 天气功能会根据
+IP 获取大致城市并查询天气，自动选择摄氏或华氏；天气状态、温度标签和简短提示均为中英双语。
 
 **Your privacy 隐私：** no account, no tracking, nothing is stored or uploaded.
 If you're offline, the pet simply stays quiet about the weather. 不注册、不追踪、
@@ -262,10 +294,10 @@ Make sure there is at least one supported photo (`.jpg/.jpeg/.png/.webp/.bmp/.ti
 folder (or a live clip: `.mp4/.mov/.m4v`), then reopen. 确认 `DesktopPet/pic` 里至少有一张受支持格式照片（或 `.mp4/.mov/.m4v` live 文件），再重新打开。
 
 **Q: I deleted photos but old pets still appear. 我删了照片但旧宠物还在？**
-The app auto-syncs with `pic` within a second or two of any change. If you
-need it to happen immediately, right-click the pet and choose
+The app watches `pic` and starts a sync after a short delay. If you need it to
+happen immediately, right-click the pet and choose
 **立即同步素材 / Sync library now**.
-程序会在 `pic` 变化后一两秒内自动同步；想立刻生效，右键宠物点“立即同步素材”即可。
+程序会监测 `pic` 变化并自动开始同步；想立即开始，右键宠物点“立即同步素材”即可。
 
 **Q: My settings are stored where? 设置存在哪？**
 `~/.config/desktop_pet/settings.json` (Mac) or `%APPDATA%\DesktopPet` (Windows).
@@ -302,8 +334,9 @@ pip install -r requirements-dev.txt
 ### 2. Add your own pictures 换成你自己的照片
 
 Drop any photos (`.jpg` / `.jpeg` / `.png` / `.webp` / `.bmp` / `.tif` / `.tiff` / `.heic` / `.heif` / `.mp4` / `.mov` / `.m4v`) into the `pic/` folder — that's it.
-The running app watches `pic/` and syncs automatically within a second or two;
-use **Sync library now** from the pet menu for an instant sync instead. If
+The running app watches `pic/` and starts syncing after a short delay; AI
+processing can take several seconds. Use **Sync library now** from the pet menu
+to start a sync immediately instead. If
 multiple photos are present it shows a random one each day; a single photo is
 always used.
 把照片放进 `pic/` 即可，运行时自动抠图；多张每天随机，一张一直用。
@@ -334,14 +367,15 @@ python run.py --fast-start
 This skips the startup weather request (all other behavior stays the same).
 如果你想要更快的启动体感，可用 `--fast-start` 跳过开机天气请求（其余功能不变）。
 
-During runtime, adding/deleting files in `pic/` auto-syncs within a second or
-two; use the pet menu item **立即同步素材 / Sync library now** for an instant sync.
-运行中增删 `pic/` 内容会在一两秒内自动同步；右键点 **立即同步素材** 可立即生效。
+During runtime, adding/deleting files in `pic/` starts an automatic sync after a
+short delay; AI processing can take several seconds. Use **立即同步素材 / Sync
+library now** to start it immediately.
+运行中增删 `pic/` 内容会自动开始同步，AI 抠图可能需要几秒；点 **立即同步素材** 可立即开始。
 
 ### 4. Run tests 运行测试
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 ### 5. Optional settings 可选设置
@@ -371,9 +405,14 @@ pet/                    the application (PySide6) 应用程序代码
   app.py                entry point / QApplication
   pet_window.py         the draggable, pokeable pet
   speech_bubble.py      cute speech bubbles
+  phrasebook.py         offline English and Chinese learning cards
+  speak.py              system text-to-speech for learning cards
   celebrations.py       fireworks / snow / emoji effects
   holidays.py           Chinese (lunar) + Western festival detection
   weather.py            IP location + weather narration
+  library.py            source-photo and generated-pet synchronization
+  processing.py         background cut-out and synchronization worker
+  config.py             per-user settings
   animations.py         jump / squash / shake
 tools/remove_bg.py      one-time background removal
 tools/make_icon.py      app icon generator
