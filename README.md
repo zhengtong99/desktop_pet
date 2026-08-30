@@ -105,7 +105,7 @@ Double-click the downloaded `.zip` to unzip it. 双击下载好的压缩包解�
 - **换一个 / Switch character** — show a different photo 换一张照片
 - **陪我聊聊 / Say hi** — a random cute line 随机可爱对白
 - **学个英语 / Learn English** — a daily English word/phrase 学一个英语词句
-- **学中文和文化 / Learn Chinese & Culture** — short Chinese phrases, pinyin, English meaning, culture notes, and pronunciation 学简短中文、拼音、英文解释、文化小知识和发音
+- **学中文和文化 / Learn Chinese** — short Chinese phrases, pinyin, English meaning, culture notes, and pronunciation 学简短中文、拼音、英文解释、文化小知识和发音
 - **今天天气 / Weather** — show the current weather 显示天气播报
 - **庆祝一下 / Celebrate** — fireworks / confetti 放个烟花彩带
 - **立即同步素材 / Sync library now** — force an instant re-scan of `pic` (changes are also detected automatically within a second or two) 立刻强制按 `pic` 同步（平时改动也会在一两秒内自动同步）
@@ -129,7 +129,7 @@ uses your computer's built-in voice, so it works offline with no setup.
 
 ### Learn a little Chinese and culture 学中文和中国文化 🔊
 
-Choose **学中文和文化 / Learn Chinese & Culture** from the right-click menu.
+Choose **学中文和文化 / Learn Chinese** from the right-click menu.
 Each short card shows **Chinese characters, pinyin, a friendly English meaning,
 and one small culture note**. Tap the **🔊 speaker** to hear the Chinese phrase
 pronounced aloud by your computer's built-in voice.
