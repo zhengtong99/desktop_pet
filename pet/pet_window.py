@@ -32,7 +32,7 @@ _DRAG_THRESHOLD = 5  # px before a press counts as a drag rather than a poke
 _MENU_ITEMS = [
     ("陪我聊聊 / Say hi", lambda self: self._say(messages.random_chitchat())),
     ("学个英语 / Learn English", lambda self: self._learn_english()),
-    ("学中文和文化 / Learn Chinese & Culture", lambda self: self._learn_chinese()),
+    ("学中文和文化 / Learn Chinese", lambda self: self._learn_chinese()),
     ("今天天气 / Weather", lambda self: self._start_weather()),
     ("庆祝一下 / Celebrate", lambda self: self._celebrate_now()),
     ("立即同步素材 / Sync library now", lambda self: self._sync_library_now()),
