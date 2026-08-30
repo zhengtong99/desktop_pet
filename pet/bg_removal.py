@@ -123,7 +123,9 @@ def _read_video_frames(src: Path, count: int):
 
     total = len(frames)
     if count > 1 and total > 1:
-        picks = sorted({round(k * (total - 1) / (count - 1)) for k in range(count)})
+        picks = sorted(
+            {round(k * (total - 1) / (count - 1)) for k in range(count)}
+        )
     else:
         picks = [total // 3]
 
@@ -138,10 +140,15 @@ def _read_video_frames(src: Path, count: int):
 
 
 def _union_bbox(images):
-    """Combined bounding box of the subject across all frames (with padding)."""
+    """Combined bounding box of the subject across all frames.
+
+    Includes padding.
+    """
     box = None
     for im in images:
-        mask = im.split()[-1].point(lambda a: 255 if a >= ALPHA_THRESHOLD else 0)
+        mask = im.split()[-1].point(
+            lambda a: 255 if a >= ALPHA_THRESHOLD else 0
+        )
         found = mask.getbbox()
         if found is None:
             continue

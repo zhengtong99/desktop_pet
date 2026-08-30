@@ -27,7 +27,7 @@ bubble.
 
 1. [Download & install 下载安装](#1-download--install-下载安装)
 2. [How to use 使用方法](#2-how-to-use-使用方法)
-3. [Use your own photos 换成你自己的照片](#3-use-your-own-photos-换成你自己喜欢的照片)
+3. [Use your own photos 换成你自己的照片](#3-use-your-own-photos-换成你自己的照片)
 4. [Weather & privacy 天气与隐私](#4-weather--privacy-天气与隐私)
 5. [Troubleshooting / FAQ 常见问题](#5-troubleshooting--faq-常见问题)
 6. [Uninstall 卸载](#6-uninstall-卸载)
@@ -153,6 +153,24 @@ restart the app. Windows uses PowerShell/System.Speech and needs no Python.
 Windows 10/11 会请求 `zh-CN` 普通话语音；中文输入法和中文语音是两回事。如果没有声音或发音
 不正确，请到“设置 → 时间和语言 → 语言和区域”安装“中文（简体，中国）”及语音相关功能，
 然后重启程序。Windows 版本不需要安装 Python。
+
+### Auto-learning frequency by location 根据位置自动调整学习内容
+
+The pet learns your **approximate location from your IP address** and adjusts
+what it teaches you. **No tracking — only used to pick learning content.**
+
+| Location | English | Chinese | Chitchat |
+| --- | --- | --- | --- |
+| 🇨🇳 **China IP** | 60% | 10% | 30% |
+| 🌍 **Other countries** | 20% | 50% | 30% |
+
+Example: if you're in China, you'll get mostly English lessons (60%) sprinkled
+with random chat (30%) and occasional Chinese culture cards (10%) — perfect for
+learning English. Outside China, you'll get mostly Chinese lessons (50%) with
+some English and chat — ideal for learning Chinese!
+宠物会根据你的 IP 地址推测位置，自动调整学习内容（仅用于选择教学内容，不进行追踪）。
+在中国，主要弹出英语（60%）、随机闲聊（30%）、和少量中文（10%）；在其他国家，主要弹出
+中文（50%）、英语（20%）、闲聊（30%）。
 
 ---
 
