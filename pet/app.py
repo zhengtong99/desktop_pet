@@ -26,11 +26,16 @@ def main(*, fast_start: bool = False) -> int:
 
     # Nothing to show and nothing to build from: guide the user to add photos.
     if not library.cached_pets() and not library.source_photos():
+        formats = (
+            "jpg, jpeg, png, webp, bmp, tiff, heic, "
+            "mp4, mov, m4v"
+        )
         QMessageBox.information(
             None,
             "Desktop Pet",
             "No photos found yet.\n\n"
-            f"Add pictures or live clips (.jpg/.jpeg/.png/.webp/.bmp/.tiff/.heic/.mp4/.mov/.m4v) to this folder, then reopen:\n"
+            f"Add pictures or live clips ({formats}) "
+            "to this folder, then reopen:\n"
             f"{library.pic_dir()}",
         )
         return 0
