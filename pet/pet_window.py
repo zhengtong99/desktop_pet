@@ -41,15 +41,18 @@ class PetWindow(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
         # Keep the pet visible even when another app is focused (macOS).
         if hasattr(Qt.WidgetAttribute, "WA_MacAlwaysShowToolWindow"):
-            self.setAttribute(Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow, True)
+            attr = Qt.WidgetAttribute.WA_MacAlwaysShowToolWindow
+            self.setAttribute(attr, True)
 
         self.config = config
         self._pets: list[Path] = library.cached_pets()
         self._pet_index = 0
 
         self._scale = float(config.get("scale", 0.35))
-        self._frames: list[QPixmap] = []          # full-res frames of current pet
-        self._scaled_frames: list[QPixmap] = []    # frames scaled to display size
+        # Full-res frames of current pet.
+        self._frames: list[QPixmap] = []
+        # Frames scaled to display size.
+        self._scaled_frames: list[QPixmap] = []
         self._frame_index = 0
         self._frame_step = 1                        # for ping-pong looping
         self._pixmap = QPixmap()   # the frame currently painted
@@ -57,7 +60,12 @@ class PetWindow(QWidget):
         # Active poke animation + current transform applied while painting.
         self._anim_iter = None
         self._anim_seq_index = 0
-        self._transform = {"off_x": 0.0, "off_y": 0.0, "scale_x": 1.0, "scale_y": 1.0}
+        self._transform = {
+            "off_x": 0.0,
+            "off_y": 0.0,
+            "scale_x": 1.0,
+            "scale_y": 1.0,
+        }
 
         self._bubble = SpeechBubble()
         self._overlay: CelebrationOverlay | None = None
@@ -141,7 +149,8 @@ class PetWindow(QWidget):
             f.scaledToWidth(w, Qt.TransformationMode.SmoothTransformation)
             for f in self._frames
         ]
-        self._frame_index = min(self._frame_index, len(self._scaled_frames) - 1)
+        max_frame = len(self._scaled_frames) - 1
+        self._frame_index = min(self._frame_index, max_frame)
         self._pixmap = self._scaled_frames[self._frame_index]
         pw, ph = self._pixmap.width(), self._pixmap.height()
         # Keep the feet anchored: remember old bottom-center, resize, restore.
@@ -215,7 +224,8 @@ class PetWindow(QWidget):
     def mousePressEvent(self, event) -> None:  # noqa: N802
         if event.button() == Qt.MouseButton.LeftButton:
             self._press_global = event.globalPosition().toPoint()
-            self._drag_offset = self._press_global - self.frameGeometry().topLeft()
+            top_left = self.frameGeometry().topLeft()
+            self._drag_offset = self._press_global - top_left
             self._maybe_drag = True
             self._dragging = False
             event.accept()
@@ -225,7 +235,8 @@ class PetWindow(QWidget):
             return
         current = event.globalPosition().toPoint()
         if not self._dragging:
-            if (current - self._press_global).manhattanLength() >= _DRAG_THRESHOLD:
+            distance = (current - self._press_global).manhattanLength()
+            if distance >= _DRAG_THRESHOLD:
                 self._dragging = True
         if self._dragging:
             self.move(current - self._drag_offset)
@@ -300,7 +311,8 @@ class PetWindow(QWidget):
         menu.addSeparator()
 
         top = QAction("始终置顶 / Always on top", menu, checkable=True)
-        top.setChecked(bool(self.windowFlags() & Qt.WindowType.WindowStaysOnTopHint))
+        stays_on_top = Qt.WindowType.WindowStaysOnTopHint
+        top.setChecked(bool(self.windowFlags() & stays_on_top))
         top.triggered.connect(self._toggle_always_on_top)
         menu.addAction(top)
 
@@ -318,7 +330,9 @@ class PetWindow(QWidget):
     # -- behaviours --------------------------------------------------------
 
     def _poke(self) -> None:
-        factory = animations.SEQUENCE[self._anim_seq_index % len(animations.SEQUENCE)]
+        seq_len = len(animations.SEQUENCE)
+        index = self._anim_seq_index % seq_len
+        factory = animations.SEQUENCE[index]
         self._anim_seq_index += 1
         self._anim_iter = factory()
         if not self._anim_timer.isActive():
@@ -334,7 +348,12 @@ class PetWindow(QWidget):
             frame = next(self._anim_iter)
         except StopIteration:
             self._anim_iter = None
-            self._transform = {"off_x": 0.0, "off_y": 0.0, "scale_x": 1.0, "scale_y": 1.0}
+            self._transform = {
+                "off_x": 0.0,
+                "off_y": 0.0,
+                "scale_x": 1.0,
+                "scale_y": 1.0,
+            }
             self._anim_timer.stop()
             self.update()
             return
@@ -525,7 +544,9 @@ class PetWindow(QWidget):
                 self._say(messages.random_chitchat(), duration_ms=5000)
 
         if holiday is not None:
-            QTimer.singleShot(400, lambda: self._celebrate(holiday.theme, holiday.emojis))
+            def celebrate_holiday():
+                self._celebrate(holiday.theme, holiday.emojis)
+            QTimer.singleShot(400, celebrate_holiday)
 
         if (not skip_weather) and self.config.get("weather_on_start", True):
             QTimer.singleShot(6500, self._start_weather)
@@ -560,7 +581,8 @@ class PetWindow(QWidget):
     def _celebrate(self, theme: str, emojis: list[str]) -> None:
         # Confine the effect to a box around the pet, not the whole screen.
         frame = self.frameGeometry()
-        side, top = 104, 128  # extra room at the sides/below and above (fireworks)
+        # Extra room at sides/below and above (for fireworks effect).
+        side, top = 104, 128
         region = QRect(
             frame.x() - side,
             frame.y() - top,
