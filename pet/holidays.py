@@ -53,6 +53,80 @@ def _easter(year: int) -> _dt.date:
     return _dt.date(year, month, day + 1)
 
 
+# --- Holiday configurations ------------------------------------------------
+
+# Fixed-date holidays (month, day) -> Holiday
+_FIXED_HOLIDAYS: dict[tuple[int, int], Holiday] = {
+    (1, 1): Holiday("new_year", "元旦 / New Year's Day", "fireworks",
+                    "新年快乐！🎆 Happy New Year!",
+                    ["🎆", "🎇", "🥂", "✨"]),
+    (2, 14): Holiday("valentine", "情人节 / Valentine's Day", "hearts",
+                     "情人节快乐 💝 Happy Valentine's Day!",
+                     ["❤️", "💕", "🌹", "💝"]),
+    (10, 31): Holiday("halloween", "万圣节 / Halloween", "spooky",
+                      "万圣节快乐！🎃 Trick or treat!",
+                      ["🎃", "👻", "🦇", "🕸️"]),
+    (12, 24): Holiday("christmas_eve", "平安夜 / Christmas Eve", "snow",
+                      "平安夜快乐 🎄 Merry Christmas Eve!",
+                      ["🎄", "❄️", "🎁", "⭐"]),
+    (12, 25): Holiday("christmas", "圣诞节 / Christmas", "snow",
+                      "圣诞快乐！🎄 Merry Christmas!",
+                      ["🎄", "🎅", "❄️", "🎁", "⭐"]),
+}
+
+# Lunar holidays (lunar_month, lunar_day) -> Holiday
+_LUNAR_HOLIDAYS: dict[tuple[int, int], Holiday] = {
+    (1, 15): Holiday("lantern", "元宵节 / Lantern Festival", "lanterns",
+                     "元宵节快乐，团团圆圆！🏮 Happy Lantern Festival!",
+                     ["🏮", "🥮", "✨"]),
+    (5, 5): Holiday("dragon_boat", "端午节 / Dragon Boat Festival", "confetti",
+                    "端午安康！🐉 Happy Dragon Boat Festival!",
+                    ["🥟", "🐉", "🎏"]),
+    (7, 7): Holiday("qixi", "七夕 / Qixi Festival", "hearts",
+                    "七夕快乐～ 愿有情人终成眷属 💕",
+                    ["💕", "🌹", "✨"]),
+    (8, 15): Holiday("mid_autumn", "中秋节 / Mid-Autumn Festival", "moon",
+                     "中秋快乐，月圆人团圆！🌕 Happy Mid-Autumn!",
+                     ["🌕", "🥮", "🐇", "✨"]),
+}
+
+# Spring Festival (Lunar New Year) special handling (extends beyond lunar day)
+_SPRING_FESTIVAL = Holiday(
+    "spring_festival",
+    "春节 / Chinese New Year",
+    "fireworks",
+    "新年快乐，恭喜发财！🧨 Happy Lunar New Year!",
+    ["🧧", "🧨", "🎆", "🏮", "✨"],
+)
+
+# Birthday (fixed dates)
+_BIRTHDAY = Holiday(
+    "birthday",
+    "生日快乐 / Happy Birthday",
+    "cake",
+    "生日快乐！🎂 Happy Birthday to you!",
+    ["🎂", "🎉", "🎈", "🍰", "✨"],
+)
+
+# Thanksgiving (4th Thursday of November)
+_THANKSGIVING = Holiday(
+    "thanksgiving",
+    "感恩节 / Thanksgiving",
+    "confetti",
+    "感恩节快乐！🦃 Happy Thanksgiving!",
+    ["🦃", "🍁", "🥧"],
+)
+
+# Easter (computed Gregorian date)
+_EASTER = Holiday(
+    "easter",
+    "复活节 / Easter",
+    "confetti",
+    "复活节快乐！🐰 Happy Easter!",
+    ["🐰", "🥚", "🌷"],
+)
+
+
 # --- Public API ------------------------------------------------------------
 
 def active_holiday(today: _dt.date) -> Holiday | None:
@@ -61,77 +135,33 @@ def active_holiday(today: _dt.date) -> Holiday | None:
     Birthday celebrations are fixed to 11/17 and 2/27.
     """
     y = today.year
+    md = (today.month, today.day)
 
-    # 1) Fixed birthday dates take priority over everything else.
-    if (today.month, today.day) in {(11, 17), (2, 27)}:
-        return Holiday(
-            "birthday",
-            "生日快乐 / Happy Birthday",
-            "cake",
-            "生日快乐！🎂 Happy Birthday to you!",
-            ["🎂", "🎉", "🎈", "🍰", "✨"],
-        )
+    # Priority 1: Fixed birthday dates (11/17, 2/27).
+    if md in {(11, 17), (2, 27)}:
+        return _BIRTHDAY
 
-    # 2) Lunar (Chinese) festivals, matched against their solar dates.
+    # Priority 2: Spring Festival (extends 2-3 days from lunar 1/1).
     spring = _lunar_to_solar(y, 1, 1)
-    if spring and (spring - _dt.timedelta(days=1)) <= today <= (spring + _dt.timedelta(days=2)):
-        return Holiday(
-            "spring_festival",
-            "春节 / Chinese New Year",
-            "fireworks",
-            "新年快乐，恭喜发财！🧨 Happy Lunar New Year!",
-            ["🧧", "🧨", "🎆", "🏮", "✨"],
-        )
+    if spring and (spring - _dt.timedelta(days=1)) <= today <= (
+        spring + _dt.timedelta(days=2)
+    ):
+        return _SPRING_FESTIVAL
 
-    lunar_map = [
-        ((1, 15), Holiday("lantern", "元宵节 / Lantern Festival", "lanterns",
-                          "元宵节快乐，团团圆圆！🏮 Happy Lantern Festival!",
-                          ["🏮", "🥮", "✨"])),
-        ((5, 5), Holiday("dragon_boat", "端午节 / Dragon Boat Festival", "confetti",
-                         "端午安康！🐉 Happy Dragon Boat Festival!",
-                         ["🥟", "🐉", "🎏"])),
-        ((7, 7), Holiday("qixi", "七夕 / Qixi Festival", "hearts",
-                         "七夕快乐～ 愿有情人终成眷属 💕",
-                         ["💕", "🌹", "✨"])),
-        ((8, 15), Holiday("mid_autumn", "中秋节 / Mid-Autumn Festival", "moon",
-                          "中秋快乐，月圆人团圆！🌕 Happy Mid-Autumn!",
-                          ["🌕", "🥮", "🐇", "✨"])),
-    ]
-    for (lm, ld), holiday in lunar_map:
+    # Priority 3: Lunar holidays (exact lunar date match).
+    for (lm, ld), holiday in _LUNAR_HOLIDAYS.items():
         solar = _lunar_to_solar(y, lm, ld)
         if solar and solar == today:
             return holiday
 
-    # 3) Fixed-date Western / international festivals.
-    md = (today.month, today.day)
-    fixed: dict[tuple[int, int], Holiday] = {
-        (1, 1): Holiday("new_year", "元旦 / New Year's Day", "fireworks",
-                        "新年快乐！🎆 Happy New Year!",
-                        ["🎆", "🎇", "🥂", "✨"]),
-        (2, 14): Holiday("valentine", "情人节 / Valentine's Day", "hearts",
-                         "情人节快乐 💝 Happy Valentine's Day!",
-                         ["❤️", "💕", "🌹", "💝"]),
-        (10, 31): Holiday("halloween", "万圣节 / Halloween", "spooky",
-                          "万圣节快乐！🎃 Trick or treat!",
-                          ["🎃", "👻", "🦇", "🕸️"]),
-        (12, 24): Holiday("christmas_eve", "平安夜 / Christmas Eve", "snow",
-                          "平安夜快乐 🎄 Merry Christmas Eve!",
-                          ["🎄", "❄️", "🎁", "⭐"]),
-        (12, 25): Holiday("christmas", "圣诞节 / Christmas", "snow",
-                          "圣诞快乐！🎄 Merry Christmas!",
-                          ["🎄", "🎅", "❄️", "🎁", "⭐"]),
-    }
-    if md in fixed:
-        return fixed[md]
+    # Priority 4: Fixed-date Western holidays.
+    if md in _FIXED_HOLIDAYS:
+        return _FIXED_HOLIDAYS[md]
 
-    # 4) Computed Western dates.
+    # Priority 5: Computed Western dates (Thanksgiving, Easter).
     if today == _nth_weekday(y, 11, 3, 4):  # 4th Thursday of November
-        return Holiday("thanksgiving", "感恩节 / Thanksgiving", "confetti",
-                       "感恩节快乐！🦃 Happy Thanksgiving!",
-                       ["🦃", "🍁", "🥧"])
+        return _THANKSGIVING
     if today == _easter(y):
-        return Holiday("easter", "复活节 / Easter", "confetti",
-                       "复活节快乐！🐰 Happy Easter!",
-                       ["🐰", "🥚", "🌷"])
+        return _EASTER
 
     return None
