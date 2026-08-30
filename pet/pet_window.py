@@ -28,6 +28,21 @@ SIZE_PRESETS = [
 MIN_SCALE, MAX_SCALE = 0.05, 1.20
 _DRAG_THRESHOLD = 5  # px before a press counts as a drag rather than a poke
 
+# Menu configuration: (label, action_method) pairs
+_MENU_ITEMS = [
+    ("陪我聊聊 / Say hi", lambda self: self._say(messages.random_chitchat())),
+    ("学个英语 / Learn English", lambda self: self._learn_english()),
+    ("学中文和文化 / Learn Chinese & Culture", lambda self: self._learn_chinese()),
+    ("今天天气 / Weather", lambda self: self._start_weather()),
+    ("庆祝一下 / Celebrate", lambda self: self._celebrate_now()),
+    ("立即同步素材 / Sync library now", lambda self: self._sync_library_now()),
+]
+
+# Default identity transform (no offset, no scale).
+_IDENTITY_TRANSFORM = {
+    "off_x": 0.0, "off_y": 0.0, "scale_x": 1.0, "scale_y": 1.0
+}
+
 
 class PetWindow(QWidget):
     def __init__(self, config: Config) -> None:
@@ -60,18 +75,14 @@ class PetWindow(QWidget):
         # Active poke animation + current transform applied while painting.
         self._anim_iter = None
         self._anim_seq_index = 0
-        self._transform = {
-            "off_x": 0.0,
-            "off_y": 0.0,
-            "scale_x": 1.0,
-            "scale_y": 1.0,
-        }
+        self._transform = _IDENTITY_TRANSFORM.copy()
 
         self._bubble = SpeechBubble()
         self._overlay: CelebrationOverlay | None = None
         self._weather_thread = None
         self._sync_thread = None
         self._sync_pending = False
+        self._country_code: str | None = None  # Cached country code from IP
 
         # Drag state.
         self._press_global = QPoint()
@@ -269,6 +280,7 @@ class PetWindow(QWidget):
     def _show_menu(self, global_pos: QPoint) -> None:
         menu = QMenu(self)
 
+        # Size submenu.
         size_menu = menu.addMenu("调整大小 / Size")
         group = QActionGroup(size_menu)
         group.setExclusive(True)
@@ -279,43 +291,28 @@ class PetWindow(QWidget):
             group.addAction(act)
             size_menu.addAction(act)
 
+        # Switch character (only if multiple pets available).
         if len(self._pets) > 1:
             switch = QAction("换一个 / Switch character", menu)
             switch.triggered.connect(self._next_pet)
             menu.addAction(switch)
 
-        hi = QAction("陪我聊聊 / Say hi", menu)
-        hi.triggered.connect(lambda: self._say(messages.random_chitchat()))
-        menu.addAction(hi)
-
-        learn = QAction("学个英语 / Learn English", menu)
-        learn.triggered.connect(self._learn_english)
-        menu.addAction(learn)
-
-        learn_chinese = QAction("学中文和文化 / Learn Chinese & Culture", menu)
-        learn_chinese.triggered.connect(self._learn_chinese)
-        menu.addAction(learn_chinese)
-
-        wx = QAction("今天天气 / Weather", menu)
-        wx.triggered.connect(self._start_weather)
-        menu.addAction(wx)
-
-        party = QAction("庆祝一下 / Celebrate", menu)
-        party.triggered.connect(self._celebrate_now)
-        menu.addAction(party)
-
-        sync_now = QAction("立即同步素材 / Sync library now", menu)
-        sync_now.triggered.connect(self._sync_library_now)
-        menu.addAction(sync_now)
+        # Main menu items from config.
+        for label, callback in _MENU_ITEMS:
+            act = QAction(label, menu)
+            act.triggered.connect(lambda _=False, cb=callback: cb(self))
+            menu.addAction(act)
 
         menu.addSeparator()
 
+        # Always on top toggle.
         top = QAction("始终置顶 / Always on top", menu, checkable=True)
         stays_on_top = Qt.WindowType.WindowStaysOnTopHint
         top.setChecked(bool(self.windowFlags() & stays_on_top))
         top.triggered.connect(self._toggle_always_on_top)
         menu.addAction(top)
 
+        # About & Quit.
         about = QAction("关于 / About", menu)
         about.triggered.connect(self._show_about)
         menu.addAction(about)
@@ -348,12 +345,7 @@ class PetWindow(QWidget):
             frame = next(self._anim_iter)
         except StopIteration:
             self._anim_iter = None
-            self._transform = {
-                "off_x": 0.0,
-                "off_y": 0.0,
-                "scale_x": 1.0,
-                "scale_y": 1.0,
-            }
+            self._transform = _IDENTITY_TRANSFORM.copy()
             self._anim_timer.stop()
             self.update()
             return
@@ -369,11 +361,39 @@ class PetWindow(QWidget):
         self._bubble.show_message(text, self._head_global(), duration_ms)
 
     def _chitchat(self) -> None:
-        # Lean towards English mini-lessons, with cute lines mixed in.
-        if random.random() < 0.65:
-            self._learn_english()
+        # Adjust probabilities based on user's country (from IP).
+        # Chinese IP: 60% English, 30% chitchat, 10% Chinese
+        # Non-Chinese IP: 50% Chinese, 20% English, 30% chitchat
+        # If country code unavailable, fetch it in background.
+        if self._country_code is None:
+            self._fetch_country_code_async()
+            # Use default probabilities while fetching.
+            roll = random.random()
+            if roll < 0.65:
+                self._learn_english()
+            else:
+                self._say(messages.random_chitchat())
         else:
-            self._say(messages.random_chitchat())
+            # Country code is cached, use location-aware probabilities.
+            is_china = self._country_code == "CN"
+            if is_china:
+                # Chinese IP: 60% English, 30% chitchat, 10% Chinese
+                roll = random.random()
+                if roll < 0.60:
+                    self._learn_english()
+                elif roll < 0.90:
+                    self._say(messages.random_chitchat())
+                else:
+                    self._learn_chinese()
+            else:
+                # Non-Chinese IP: 50% Chinese, 20% English, 30% chitchat
+                roll = random.random()
+                if roll < 0.50:
+                    self._learn_chinese()
+                elif roll < 0.70:
+                    self._learn_english()
+                else:
+                    self._say(messages.random_chitchat())
         self._chitchat_timer.start(random.randint(25_000, 55_000))
 
     def _learn_english(self) -> None:
@@ -398,6 +418,20 @@ class PetWindow(QWidget):
             speak_text=entry["zh"],
             speak_language="zh-CN",
         )
+
+    def _fetch_country_code_async(self) -> None:
+        """Fetch and cache user's country code from IP in background."""
+        def fetch():
+            try:
+                from pet import weather
+                loc = weather._get_location()
+                self._country_code = loc.get("countryCode")
+            except Exception:
+                # If fetch fails, default to non-China.
+                self._country_code = "US"
+        import threading
+        thread = threading.Thread(target=fetch, daemon=True)
+        thread.start()
 
     def _set_scale(self, value: float) -> None:
         self._scale = value
@@ -535,6 +569,10 @@ class PetWindow(QWidget):
     def greet_and_report(self, *, skip_weather: bool = False) -> None:
         """Show an opening greeting, celebrate any holiday, fetch weather."""
         import datetime as dt
+
+        # Fetch user's country code asynchronously for location-aware
+        # learning probabilities.
+        self._fetch_country_code_async()
 
         holiday = active_holiday(dt.date.today())
         if self.config.get("greeting_on_start", True):
